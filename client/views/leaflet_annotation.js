@@ -326,6 +326,7 @@ export class LeafletAnnotation extends React.Component {
     }
 
     // Add the keypoints
+    // TODO/david Render the skeleton here
     if (annotation.keypoints != "undefined" && annotation.keypoints != null) {
       layers["keypoints"] = [];
 
