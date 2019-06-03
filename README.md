@@ -25,6 +25,56 @@ This code base is developed using Python 2.7.10 on Ubuntu 16.04 and MacOSX 10.11
 
 The tools are primarily tested using the [Chrome web browser](https://www.google.com/chrome/browser/desktop/index.html).
 
+# Passenger AI Workflow
+
+## Deploy Visipedia on Heroku. 
+* Give the app a random, hard to guess name so it's not easily discoverable. You
+ can
+ use [this random string generator](https://www.random.org/strings/) to 
+ generate such names. Make sure to only use lower-case letters and numbers.   
+* You need to use mLab MongoDB as its database.
+
+## Load a set of images to the database.
+ 1. Collect all the images in a local directory. For example, `~/feet_on_seat`.
+ 1. Use [`from_image`](https://github.com/PassengerAI/annotation_tools/blob/d404e525a2f6619a4f26f398eede5e38b5fe47e8/annotation_tools/converter.py#L233) to create a JSON file with links to the images:  
+ `from_images('/Users/myuser/feet_on_seet', '/Users/myuser/output.json')`
+ 1. Cd into the `~/feet_on_seat` and upload the images to the S3 bucket: 
+ `aws s3 sync . s3://pai-datastore/images/`. 
+ Make sure all the images are publicly readable.
+ 1. Get the `MONGODB_URI` config of the Heroku app and use it in the 
+ following command:  
+ `MONGODB_URI=mongodb://... python -m annotation_tools.db_dataset_utils --action load --dataset output.json`
+ You can also pass multiple JSON files to this command:
+ `MONGODB_URI=mongodb://... python -m annotation_tools.db_dataset_utils --action load --dataset *.json`
+ **NOTE: BE CAREFUL WITH THESE COMMANDS. THEY WILL CHANGE THE DEPLOYED DATABASE.**
+ 
+## Export the annotations  
+
+Once the annotations are done, run the following command, with the proper 
+`MONGODB_URI` to export the annotations to a JSON file.  
+`MONGODB_URI=mongodb://.. python -m annotation_tools.db_dataset_utils --action export -o ~/new_annotations.json`
+
+## Drop the database
+
+In case of mistakes and errors, run the following commands to drop the 
+database. 
+
+**BE VERY CAREFUL WITH THIS COMMAND. IT WILL DESTROY ALL THE 
+ANNOTATIONS**
+
+`MONGODB_URI=... python -m annotation_tools.db_dataset_utils --action drop` 
+
+## Distributing tasks among multiple workers
+
+For the use case of distributing the annotation tasks, we just deploy 
+multiple apps, and load the same set of images on their databases, and give 
+them a link with `startId` set to the image ID they should start the 
+annotations from: `xyz.herokuapp.com/edit_task/?startId=1234`.
+
+NOTE: that startId is the `id` of the image in the database, which is 
+different than sequence number seen on the Visipedia's user interface.
+
+
 # Quick Start
 Make sure that MongoDB is installed and running (e.g. for Ubuntu 16.04 see [here](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/#import-the-public-key-used-by-the-package-management-system)).
 
@@ -288,3 +338,5 @@ We provide a convenience function to clear all collections associated with the b
 ```
 python -m annotation_tools.db_bbox_utils --action drop
 ```
+
+
