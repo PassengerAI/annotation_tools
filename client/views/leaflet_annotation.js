@@ -67,6 +67,10 @@ export class LeafletAnnotation extends React.Component {
     // This will hold the leaflet layers that correspond to the annotations stored in `this.state.annotations`
     // It is a mirror of this.state.annotations
     this.annotation_layers = null;
+    this.annotationFeatures = null;
+
+    this.edges = {};
+    this.edgeFeatures = null;
 
     // Properties used to track annotation status
     this._drawSuccessfullyCreated = null; // used to determine if the user actually made an annotation or simply clicked on the image
@@ -119,6 +123,7 @@ export class LeafletAnnotation extends React.Component {
 
   // Add the image overlay and render the annotations.
   componentDidMount() {
+    console.log(this);
     // Create the leaflet map
     this.leafletMap = L.map(this.leafletHolderEl, {
       center: [0, 0],
@@ -165,9 +170,14 @@ export class LeafletAnnotation extends React.Component {
       leafletMap
     );
 
+    //Feature group holding all intra-keypoint edge layers
+    this.edgeFeatures = L.featureGroup().addTo(leafletMap);
+
     // Add the feature group that will hold the annotations
     // All layers added to this feature group will be editable
-    this.annotationFeatures = new L.FeatureGroup().addTo(leafletMap);
+    this.annotationFeatures = new L.FeatureGroup()
+      .addTo(leafletMap)
+      .bringToFront();
 
     // Initialize the editor
     this.editor = new L.EditToolbar.Edit(leafletMap, {
@@ -190,6 +200,8 @@ export class LeafletAnnotation extends React.Component {
         this.addAnnotation(this.state.annotations[i], i)
       );
     }
+
+    this.addUpdateEdgeLayers();
 
     // Should we enable editing immediately?
     if (this.props.enableEditing) {
@@ -395,6 +407,44 @@ export class LeafletAnnotation extends React.Component {
     }
 
     return layers;
+  }
+
+  addUpdateEdgeLayers() {
+    for (var i = 0; i < this.state.annotations.length; i++) {
+      let annotation = this.state.annotations[i];
+      var category = this.categoryMap[annotation.category_id];
+      for (var j = 0; j < category.skeleton.length; j++) {
+        let edge = category.skeleton[j];
+        let p1_index = edge[0] * 3;
+        let p2_index = edge[1] * 3;
+
+        let x1_px = annotation.keypoints[p1_index] * this.imageWidth;
+        let y1_px = annotation.keypoints[p1_index + 1] * this.imageHeight;
+        let v1 = annotation.keypoints[p1_index + 2];
+
+        let x2_px = annotation.keypoints[p2_index] * this.imageWidth;
+        let y2_px = annotation.keypoints[p2_index + 1] * this.imageHeight;
+        let v2 = annotation.keypoints[p2_index + 2];
+
+        if (v1 > 0 && v2 > 0) {
+          //We need an edge here
+          let latlngs = [
+            this.leafletMap.unproject([x1_px, y1_px], 0),
+            this.leafletMap.unproject([x2_px, y2_px], 0)
+          ];
+
+          let edge_key = `${edge[0]}-${edge[1]}`;
+          if (!this.edges[edge_key]) {
+            let edge = L.polyline(latlngs, { color: "red" });
+            edge.options.editing = {};
+            edge.editing.disable();
+
+            this.edges[edge_key] = edge;
+            this.edgeFeatures.addLayer(edge);
+          }
+        }
+      }
+    }
   }
 
   /**
@@ -982,6 +1032,14 @@ export class LeafletAnnotation extends React.Component {
     }
   }
 
+  addEdgeLayer(layer) {
+    if (layer != "undefined" && layer != null) {
+      if (!this.edgeFeatures.hasLayer(layer)) {
+        this.edgeFeatures.addLayer(layer);
+      }
+    }
+  }
+
   /**
    * Remove an annotation layer from the leaflet map.
    * @param {*} layer
@@ -999,6 +1057,7 @@ export class LeafletAnnotation extends React.Component {
    * @param {*} annotation_id
    */
   handleAnnotationDelete(annotation_id) {
+    //TODO This requires updates to delete edges as well
     // Need to check if we are annotating this instance
     if (this.state.annotating) {
       if (this.current_annotationIndex == annotation_id) {
