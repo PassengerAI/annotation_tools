@@ -476,7 +476,7 @@ export class LeafletAnnotation extends React.Component {
   }
 
   _drawStartEvent(e) {
-    console.log("draw start");
+    console.log("draw start", e);
 
     if (this.annotating_bbox) {
       // If the user clicks on the image (rather than clicking and dragging) then this
@@ -508,7 +508,7 @@ export class LeafletAnnotation extends React.Component {
    * @param {*} e
    */
   _drawStopEvent(e) {
-    console.log("draw stop");
+    console.log("draw stop", e);
     // The user triggered some click, but didn't successfully create the annotation.
     if (this.state.annotating && !this._drawSuccessfullyCreated) {
       this._currentDrawer.enable();
@@ -530,7 +530,7 @@ export class LeafletAnnotation extends React.Component {
    * @param {*} e
    */
   _drawCreatedEvent(e) {
-    console.log("draw created");
+    console.log("draw created", e);
     // This is confusing, but we need to use another state variable
     // to decide if the user "messed up" the annotation:
     //		doing a single click for a bounding box, etc.
