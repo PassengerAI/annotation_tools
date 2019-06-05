@@ -432,17 +432,36 @@ export class LeafletAnnotation extends React.Component {
         let y2_px = annotation.keypoints[p2_index + 1] * this.imageHeight;
         let v2 = annotation.keypoints[p2_index + 2];
 
+        let x_mid_px = (x1_px + x2_px) / 2.0;
+        let y_mid_px = (y1_px + y2_px) / 2.0;
+
         if (v1 > 0 && v2 > 0) {
-          //We need an edge here
-          let latlngs = [
+          //We need 2 edges here, colored for each endpoint, meeting at the midpoint
+          let latlngs1 = [
             this.leafletMap.unproject([x1_px, y1_px], 0),
-            this.leafletMap.unproject([x2_px, y2_px], 0)
+            this.leafletMap.unproject([x_mid_px, y_mid_px], 0)
           ];
 
-          let edge = L.polyline(latlngs, { color: "red" });
-          edge.options.editing = {};
-          edge.editing.disable();
-          this.edgeFeatures.addLayer(edge);
+          let edge1 = L.polyline(latlngs1, {
+            color: category.keypoints_style[edge[0]]
+          });
+
+          edge1.options.editing = {};
+          edge1.editing.disable();
+          this.edgeFeatures.addLayer(edge1);
+
+          let latlngs2 = [
+            this.leafletMap.unproject([x2_px, y2_px], 0),
+            this.leafletMap.unproject([x_mid_px, y_mid_px], 0)
+          ];
+
+          let edge2 = L.polyline(latlngs2, {
+            color: category.keypoints_style[edge[1]]
+          });
+
+          edge2.options.editing = {};
+          edge2.editing.disable();
+          this.edgeFeatures.addLayer(edge2);
         }
       }
     }
