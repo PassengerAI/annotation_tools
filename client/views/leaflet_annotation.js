@@ -741,6 +741,7 @@ export class LeafletAnnotation extends React.Component {
   }
 
   _layerMoved(e) {
+    this.redrawEdges();
     console.log(e);
   }
 
