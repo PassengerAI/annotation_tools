@@ -113,6 +113,8 @@ export class LeafletAnnotation extends React.Component {
     this.showAllAnnotations = this.showAllAnnotations.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
 
+    this.redrawEdges = this.redrawEdges.bind(this);
+
     this.bboxCursorUpdate = this.bboxCursorUpdate.bind(this);
 
     this.categorySelection = this.categorySelection.bind(this);
@@ -201,7 +203,7 @@ export class LeafletAnnotation extends React.Component {
       );
     }
 
-    this.addUpdateEdgeLayers();
+    this.redrawEdges();
 
     // Should we enable editing immediately?
     if (this.props.enableEditing) {
@@ -409,9 +411,13 @@ export class LeafletAnnotation extends React.Component {
     return layers;
   }
 
-  addUpdateEdgeLayers() {
-    for (var i = 0; i < this.state.annotations.length; i++) {
-      let annotation = this.state.annotations[i];
+  redrawEdges() {
+    console.log("redrawEdges");
+    this.edgeFeatures.clearLayers();
+    let annotations = this.getAnnotations().filter(anno => !anno.deleted);
+    console.log("Annotations to redraw edges for: ", annotations);
+    for (var i = 0; i < annotations.length; i++) {
+      let annotation = annotations[i];
       var category = this.categoryMap[annotation.category_id];
       for (var j = 0; j < category.skeleton.length; j++) {
         let edge = category.skeleton[j];
@@ -433,15 +439,10 @@ export class LeafletAnnotation extends React.Component {
             this.leafletMap.unproject([x2_px, y2_px], 0)
           ];
 
-          let edge_key = `${edge[0]}-${edge[1]}`;
-          if (!this.edges[edge_key]) {
-            let edge = L.polyline(latlngs, { color: "red" });
-            edge.options.editing = {};
-            edge.editing.disable();
-
-            this.edges[edge_key] = edge;
-            this.edgeFeatures.addLayer(edge);
-          }
+          let edge = L.polyline(latlngs, { color: "red" });
+          edge.options.editing = {};
+          edge.editing.disable();
+          this.edgeFeatures.addLayer(edge);
         }
       }
     }
@@ -572,6 +573,7 @@ export class LeafletAnnotation extends React.Component {
         $(ch_vertical).remove();
         this.bbox_crosshairs = null;
       }
+      this.redrawEdges();
     }
   }
 
@@ -695,6 +697,8 @@ export class LeafletAnnotation extends React.Component {
       },
       this.checkKeypointAnnotationQueue.bind(this)
     );
+
+    this.redrawEdges();
 
     // If this is the first instance, then we need to enable editing.
     if (this.props.enableEditing) {
@@ -1057,7 +1061,6 @@ export class LeafletAnnotation extends React.Component {
    * @param {*} annotation_id
    */
   handleAnnotationDelete(annotation_id) {
-    //TODO This requires updates to delete edges as well
     // Need to check if we are annotating this instance
     if (this.state.annotating) {
       if (this.current_annotationIndex == annotation_id) {
@@ -1096,6 +1099,8 @@ export class LeafletAnnotation extends React.Component {
       let annotations = prevState.annotations;
       // Mark the annotation as deleted. The server will delete it from the database
       annotations[annotation_id].deleted = true;
+
+      this.redrawEdges();
 
       return {
         annotations: annotations
@@ -1277,6 +1282,7 @@ export class LeafletAnnotation extends React.Component {
   handleSave() {
     //this.props.onSave(annotations_to_save);
     this.props.onSave(() => {}, () => {});
+    this.redrawEdges();
   }
 
   /**
