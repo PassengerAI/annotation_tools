@@ -1056,14 +1056,6 @@ export class LeafletAnnotation extends React.Component {
     }
   }
 
-  addEdgeLayer(layer) {
-    if (layer != "undefined" && layer != null) {
-      if (!this.edgeFeatures.hasLayer(layer)) {
-        this.edgeFeatures.addLayer(layer);
-      }
-    }
-  }
-
   /**
    * Remove an annotation layer from the leaflet map.
    * @param {*} layer
