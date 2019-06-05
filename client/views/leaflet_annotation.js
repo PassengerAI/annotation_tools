@@ -125,7 +125,6 @@ export class LeafletAnnotation extends React.Component {
 
   // Add the image overlay and render the annotations.
   componentDidMount() {
-    console.log(this);
     // Create the leaflet map
     this.leafletMap = L.map(this.leafletHolderEl, {
       center: [0, 0],
@@ -412,10 +411,8 @@ export class LeafletAnnotation extends React.Component {
   }
 
   redrawEdges() {
-    console.log("redrawEdges");
     this.edgeFeatures.clearLayers();
     let annotations = this.getAnnotations().filter(anno => !anno.deleted);
-    console.log("Annotations to redraw edges for: ", annotations);
     for (var i = 0; i < annotations.length; i++) {
       let annotation = annotations[i];
       var category = this.categoryMap[annotation.category_id];
