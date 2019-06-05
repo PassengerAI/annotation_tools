@@ -175,6 +175,7 @@ export class LeafletAnnotation extends React.Component {
     this.edgeFeatures = L.featureGroup().addTo(leafletMap);
 
     // Add the feature group that will hold the annotations
+    // and ensure it is the foremost layer visually
     // All layers added to this feature group will be editable
     this.annotationFeatures = new L.FeatureGroup()
       .addTo(leafletMap)
@@ -202,6 +203,7 @@ export class LeafletAnnotation extends React.Component {
       );
     }
 
+    // Draw initial skeleton edger based on existing annotations
     this.redrawEdges();
 
     // Should we enable editing immediately?
@@ -339,7 +341,6 @@ export class LeafletAnnotation extends React.Component {
     }
 
     // Add the keypoints
-    // TODO/david Render the skeleton here
     if (annotation.keypoints != "undefined" && annotation.keypoints != null) {
       layers["keypoints"] = [];
 
@@ -410,6 +411,10 @@ export class LeafletAnnotation extends React.Component {
     return layers;
   }
 
+  /**
+   * Redraw the skeleton by deleting all existing edges/layers and then
+   * redrawing all the edges that still exist, with updated positions
+   */
   redrawEdges() {
     this.edgeFeatures.clearLayers();
     let annotations = this.getAnnotations().filter(anno => !anno.deleted);
