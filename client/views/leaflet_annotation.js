@@ -426,19 +426,20 @@ export class LeafletAnnotation extends React.Component {
         let p1_index = edge[0] * 3;
         let p2_index = edge[1] * 3;
 
-        let x1_px = annotation.keypoints[p1_index] * this.imageWidth;
-        let y1_px = annotation.keypoints[p1_index + 1] * this.imageHeight;
         let v1 = annotation.keypoints[p1_index + 2];
-
-        let x2_px = annotation.keypoints[p2_index] * this.imageWidth;
-        let y2_px = annotation.keypoints[p2_index + 1] * this.imageHeight;
         let v2 = annotation.keypoints[p2_index + 2];
 
-        let x_mid_px = (x1_px + x2_px) / 2.0;
-        let y_mid_px = (y1_px + y2_px) / 2.0;
-
         if (v1 > 0 && v2 > 0) {
-          //We need 2 edges here, colored for each endpoint, meeting at the midpoint
+          //We want 2 edges here, colored for each endpoint, meeting at the midpoint
+          let x1_px = annotation.keypoints[p1_index] * this.imageWidth;
+          let y1_px = annotation.keypoints[p1_index + 1] * this.imageHeight;
+
+          let x2_px = annotation.keypoints[p2_index] * this.imageWidth;
+          let y2_px = annotation.keypoints[p2_index + 1] * this.imageHeight;
+
+          let x_mid_px = (x1_px + x2_px) / 2.0;
+          let y_mid_px = (y1_px + y2_px) / 2.0;
+
           let latlngs1 = [
             this.leafletMap.unproject([x1_px, y1_px], 0),
             this.leafletMap.unproject([x_mid_px, y_mid_px], 0)
