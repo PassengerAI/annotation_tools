@@ -7,94 +7,103 @@ This repository contains a collection of tools for editing and creating [COCO st
 These web based annotation tools are built on top of [Leaflet.js](http://leafletjs.com/) and [Leaflet.draw](https://leaflet.github.io/Leaflet.draw/docs/leaflet-draw-latest.html).
 
 ## Capabilities:
-* Load and visualize a COCO style dataset
-* Edit Class Labels
-* Edit Bounding Boxes
-* Edit Keypoints
-* Export a COCO style dataet
-* Bounding Box Tasks for Amazon Mechanical Turk
+
+- Load and visualize a COCO style dataset
+- Edit Class Labels
+- Edit Bounding Boxes
+- Edit Keypoints
+- Export a COCO style dataet
+- Bounding Box Tasks for Amazon Mechanical Turk
 
 ## Not Implemented:
-* Edit Segmentations
-* Keypoint tasks for Amazon Mechanical Turk
-* Class label tasks for Amazon Mechanical Turk
-* Segmentation tasks for Amazon Mechanical Turk
+
+- Edit Segmentations
+- Keypoint tasks for Amazon Mechanical Turk
+- Class label tasks for Amazon Mechanical Turk
+- Segmentation tasks for Amazon Mechanical Turk
 
 # Requirements and Environments
-This code base is developed using Python 2.7.10 on Ubuntu 16.04 and MacOSX 10.11. You need to have [MongoDB](https://www.mongodb.com/) [installed](https://docs.mongodb.com/manual/installation/#tutorials) and [running](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-os-x/#run-mongodb).
+
+This code base is developed using Python 3.6.7 on Ubuntu 16.04 and MacOSX 10.11. You need to have [MongoDB](https://www.mongodb.com/) [installed](https://docs.mongodb.com/manual/installation/#tutorials) and [running](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-os-x/#run-mongodb).
 
 The tools are primarily tested using the [Chrome web browser](https://www.google.com/chrome/browser/desktop/index.html).
 
 # Passenger AI Workflow
 
-## Deploy Visipedia on Heroku. 
-* Give the app a random, hard to guess name so it's not easily discoverable. You
- can
- use [this random string generator](https://www.random.org/strings/) to 
- generate such names. Make sure to only use lower-case letters and numbers.   
-* You need to use mLab MongoDB as its database.
+## Deploy Visipedia on Heroku.
+
+- Give the app a random, hard to guess name so it's not easily discoverable. You
+  can
+  use [this random string generator](https://www.random.org/strings/) to
+  generate such names. Make sure to only use lower-case letters and numbers.
+- You need to use mLab MongoDB as its database.
 
 ## Load a set of images to the database.
- 1. Collect all the images in a local directory. For example, `~/feet_on_seat`.
- 1. Use [`from_image`](https://github.com/PassengerAI/annotation_tools/blob/d404e525a2f6619a4f26f398eede5e38b5fe47e8/annotation_tools/converter.py#L233) to create a JSON file with links to the images:  
- `from_images('/Users/myuser/feet_on_seet', '/Users/myuser/output.json')`
- 1. Cd into the `~/feet_on_seat` and upload the images to the S3 bucket: 
- `aws s3 sync . s3://pai-datastore/images/`. 
- Make sure all the images are publicly readable.
- 1. Get the `MONGODB_URI` config of the Heroku app and use it in the 
- following command:  
- `MONGODB_URI=mongodb://... python -m annotation_tools.db_dataset_utils --action load --dataset output.json`
- You can also pass multiple JSON files to this command:
- `MONGODB_URI=mongodb://... python -m annotation_tools.db_dataset_utils --action load --dataset *.json`
- **NOTE: BE CAREFUL WITH THESE COMMANDS. THEY WILL CHANGE THE DEPLOYED DATABASE.**
- 
-## Export the annotations  
 
-Once the annotations are done, run the following command, with the proper 
+1.  Collect all the images in a local directory. For example, `~/feet_on_seat`.
+1.  Use [`from_image`](https://github.com/PassengerAI/annotation_tools/blob/d404e525a2f6619a4f26f398eede5e38b5fe47e8/annotation_tools/converter.py#L233) to create a JSON file with links to the images:  
+    `from_images('/Users/myuser/feet_on_seet', '/Users/myuser/output.json')`
+1.  Cd into the `~/feet_on_seat` and upload the images to the S3 bucket:
+    `aws s3 sync . s3://pai-datastore/images/`.
+    Make sure all the images are publicly readable.
+1.  Get the `MONGODB_URI` config of the Heroku app and use it in the
+    following command:  
+    `MONGODB_URI=mongodb://... python -m annotation_tools.db_dataset_utils --action load --dataset output.json`
+    You can also pass multiple JSON files to this command:
+    `MONGODB_URI=mongodb://... python -m annotation_tools.db_dataset_utils --action load --dataset *.json`
+    **NOTE: BE CAREFUL WITH THESE COMMANDS. THEY WILL CHANGE THE DEPLOYED DATABASE.**
+
+## Export the annotations
+
+Once the annotations are done, run the following command, with the proper
 `MONGODB_URI` to export the annotations to a JSON file.  
 `MONGODB_URI=mongodb://.. python -m annotation_tools.db_dataset_utils --action export -o ~/new_annotations.json`
 
 ## Drop the database
 
-In case of mistakes and errors, run the following commands to drop the 
-database. 
+In case of mistakes and errors, run the following commands to drop the
+database.
 
-**BE VERY CAREFUL WITH THIS COMMAND. IT WILL DESTROY ALL THE 
+**BE VERY CAREFUL WITH THIS COMMAND. IT WILL DESTROY ALL THE
 ANNOTATIONS**
 
-`MONGODB_URI=... python -m annotation_tools.db_dataset_utils --action drop` 
+`MONGODB_URI=... python -m annotation_tools.db_dataset_utils --action drop`
 
 ## Distributing tasks among multiple workers
 
-For the use case of distributing the annotation tasks, we just deploy 
-multiple apps, and load the same set of images on their databases, and give 
-them a link with `startId` set to the image ID they should start the 
+For the use case of distributing the annotation tasks, we just deploy
+multiple apps, and load the same set of images on their databases, and give
+them a link with `startId` set to the image ID they should start the
 annotations from: `xyz.herokuapp.com/edit_task/?startId=1234`.
 
-NOTE: that startId is the `id` of the image in the database, which is 
+NOTE: that startId is the `id` of the image in the database, which is
 different than sequence number seen on the Visipedia's user interface.
 
-
 # Quick Start
+
 Make sure that MongoDB is installed and running (e.g. for Ubuntu 16.04 see [here](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/#import-the-public-key-used-by-the-package-management-system)).
 
 Clone the repo:
+
 ```
 $ git clone https://github.com/visipedia/annotation_tools.git
 $ cd annotation_tools
 ```
 
 Install the python dependencies:
+
 ```
 $ pip install -r requirements.txt
 ```
 
 Start the annotation tool web server
+
 ```
 $ python run.py --port 8008
 ```
 
 Download the COCO Dataset annotation file:
+
 ```
 cd ~/Downloads
 wget http://images.cocodataset.org/annotations/annotations_trainval2017.zip
@@ -102,12 +111,14 @@ unzip annotations_trainval2017.zip
 ```
 
 Import the validation annotations into the annotation tool:
+
 ```
 # From the annotation_tools repo
 $ python -m annotation_tools.db_dataset_utils --action load \
 --dataset ~/Downloads/annotations/person_keypoints_val2017.json \
 --normalize
 ```
+
 If you get an error here, then please make sure MongoDB is installed and running.
 
 Go to `http://localhost:8008/edit_image/100238` to edit the annotations for the validation image with `id=100238`.
@@ -117,6 +128,7 @@ Go to `http://localhost:8008/edit_task/?start=0&end=100` to edit the first 100 i
 Go to `http://localhost:8008/edit_task/?category_id=1` to edit all images that have annotations whose `category_id=1`.
 
 Export the modified dataset:
+
 ```
 $ python -m annotation_tools.db_dataset_utils --action export \
 --output ~/Downloads/annotations/updated_person_keypoints_val2017.json \
@@ -124,35 +136,42 @@ $ python -m annotation_tools.db_dataset_utils --action export \
 ```
 
 Clear the annotation tool database:
+
 ```
 $ python -m annotation_tools.db_dataset_utils --action drop
 ```
 
 # Development Setup
+
 To modify and develop this code base you will need to have [node](https://nodejs.org/en/) and [npm](https://www.npmjs.com/) installed.
 
 Clone the repo:
+
 ```
 $ git clone https://github.com/visipedia/annotation_tools.git
 $ cd annotation_tools
 ```
 
 Install python packages:
+
 ```
 $ pip install -r requirements.txt
 ```
 
 Install node modules (both production and development):
+
 ```
 $ npm install
 ```
 
 Watch for javascript changes and recompile the app (this generates `app.bundle.js` in `annotation_tools/static`):
+
 ```
 $ npm run watch
 ```
 
 Start the web server:
+
 ```
 $ python run.py \
 --port 8008 \
@@ -160,7 +179,9 @@ $ python run.py \
 ```
 
 # Dataset Format
+
 We use a slightly modified COCO dataset format:
+
 ```
 {
 "images" : [image],
@@ -223,15 +244,17 @@ We use the modified COCO dataset format as the "schema" for the the MongoDB data
 We can load the original COCO dataset out of the box. However, we need to tell the code to normalize the annotations by passing the `--normalize` command line argument. Further, the code will check to see if `coco_url` is present and will create a `url` field with the same value.
 
 Load a dataset:
+
 ```
 python -m annotation_tools.db_dataset_utils --action load \
 --dataset ~/Downloads/annotations/person_keypoints_val2017.json \
 --normalize
 ```
 
-After we have edited the dataset, we can export it. This will produce a json file that can be used as a datatset file to train a computer vision model. By default, the code will export *noramalized* annotations, we can export denomalized coordinates by passing the `--denormalize` command line argument.
+After we have edited the dataset, we can export it. This will produce a json file that can be used as a datatset file to train a computer vision model. By default, the code will export _noramalized_ annotations, we can export denomalized coordinates by passing the `--denormalize` command line argument.
 
 Export a dataset:
+
 ```
 python -m annotation_tools.db_dataset_utils --action export \
 --output ~/Downloads/annotations/updated_person_keypoints_val2017.json \
@@ -239,6 +262,7 @@ python -m annotation_tools.db_dataset_utils --action export \
 ```
 
 We provide a convenience function to clear the collections that have been created when loading a dataset:
+
 ```
 python -m annotation_tools.db_dataset_utils --action drop
 ```
@@ -246,10 +270,12 @@ python -m annotation_tools.db_dataset_utils --action drop
 # Hosting Images Locally
 
 It might be the case that the images you want to edit are on your local machine and not accessible via a url. In this case, you can use python's SimpleHTTPServer to start a local webserver to serve the images directly from your machine. If the images are located in `/home/gvanhorn/images` then you can:
+
 ```
 cd /home/gvanhorn
 python -m SimpleHTTPServer 8007
 ```
+
 This starts a webserver on port 8007 that can serve files from the `/home/gvanhorn` directory. You can now access images via the browser by going to `localhost:8007/images/397133.jpg`, where `397133.jpg` is an image file in `/home/gvanhorn/images`. Now you can create a json dataset file that has `localhost:8007/images/397133.jpg` in the `url` field for the image with id `397133`. As this technique makes all files in the directory `/home/gvanhorn` accessible, this should be used with caution.
 
 # Editing an Image
@@ -264,9 +290,10 @@ You can use a url constucted like `localhost:8008/edit_task/?start=0&end=100` to
 
 # Collecting Bounding Boxes
 
-We support creating bounding box tasks, where each task is composed of a group of images that needed to be annotated with bounding boxes for a *single* category. Each task has a specific `id` and is accessible via `localhost:8008/bbox_task/0a95f07a`, where `0a95f07a` is the task id. Similar to datasets, you'll need to create a json file that specifies the bounding box tasks and then load that file into the tool.
+We support creating bounding box tasks, where each task is composed of a group of images that needed to be annotated with bounding boxes for a _single_ category. Each task has a specific `id` and is accessible via `localhost:8008/bbox_task/0a95f07a`, where `0a95f07a` is the task id. Similar to datasets, you'll need to create a json file that specifies the bounding box tasks and then load that file into the tool.
 
 Data format:
+
 ```
 {
   'instructions' : [bbox_task_instructions],
@@ -288,11 +315,13 @@ bbox_task{
   category_id : str
 }
 ```
-The `bbox_task_instructions` contains fields that hold instruction information to show to the worker.  The `examples` list should contain urls to example images. These images should have a height of 500px and will be rendered on the task start screen. `instructions` should point to an external page that contains detailed information for your task. For example you can use Google Slides to describe the task in detail and have more examples.
+
+The `bbox_task_instructions` contains fields that hold instruction information to show to the worker. The `examples` list should contain urls to example images. These images should have a height of 500px and will be rendered on the task start screen. `instructions` should point to an external page that contains detailed information for your task. For example you can use Google Slides to describe the task in detail and have more examples.
 
 `bbox_task` contains a list of image ids (`image_ids`) that should be annotated with bounding boxes. The `instruction_id` field should be a valid bbox_task_instructions `id`. The `category_id` should be valid category that was created when loading a dataset. The workers will be asked to draw boxes around that category for each image in the task.
 
 Once you have created a json file you can load it:
+
 ```
 python -m annotation_tools.db_bbox_utils --action load \
 --tasks ~/Desktop/bbox_tasks.json
@@ -301,6 +330,7 @@ python -m annotation_tools.db_bbox_utils --action load \
 The task can be accessed by going to the url `localhost:8008/bbox_task/0a95f07a`, where `0a95f07a` is a `bbox_task` `id` that you specified in the json file that was loaded.
 
 When a worker finishes a task, the following result structure will be saved in the database:
+
 ```
 bbox_task_result{
   time : float
@@ -316,15 +346,19 @@ bbox_result{
   image : image
 }
 ```
+
 Where `annotation` is defined above.
 
 These results can be exported to a json file with:
+
 ```
 python -m annotation_tools.db_bbox_utils --action export \
 --output ~/Desktop/bbox_task_results.json \
 --denormalize
 ```
+
 If you only want to export a specific set of results, you can pass in the bounding box task file that contains the tasks you want results for:
+
 ```
 python -m annotation_tools.db_bbox_utils --action export \
 --tasks ~/Desktop/bbox_tasks.json \
@@ -332,11 +366,10 @@ python -m annotation_tools.db_bbox_utils --action export \
 --denormalize
 ```
 
-To merge these redundant box annotations together to produce a final dataset you can use the [Crowdsourcing](https://github.com/gvanhorn38/crowdsourcing) repo. See [here](https://github.com/gvanhorn38/crowdsourcing#merging-bounding-boxes-example) for an example.  
+To merge these redundant box annotations together to produce a final dataset you can use the [Crowdsourcing](https://github.com/gvanhorn38/crowdsourcing) repo. See [here](https://github.com/gvanhorn38/crowdsourcing#merging-bounding-boxes-example) for an example.
 
 We provide a convenience function to clear all collections associated with the bounding boxes tasks:
+
 ```
 python -m annotation_tools.db_bbox_utils --action drop
 ```
-
-
