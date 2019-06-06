@@ -418,10 +418,10 @@ export class LeafletAnnotation extends React.Component {
   redrawEdges() {
     this.edgeFeatures.clearLayers();
     let annotations = this.getAnnotations().filter(anno => !anno.deleted);
-    for (var i = 0; i < annotations.length; i++) {
+    for (let i = 0; i < annotations.length; i++) {
       let annotation = annotations[i];
-      var category = this.categoryMap[annotation.category_id];
-      for (var j = 0; j < category.skeleton.length; j++) {
+      let category = this.categoryMap[annotation.category_id];
+      for (let j = 0; j < category.skeleton.length; j++) {
         let edge = category.skeleton[j];
         let p1_index = edge[0] * 3;
         let p2_index = edge[1] * 3;
