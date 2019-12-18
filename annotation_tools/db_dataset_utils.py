@@ -114,8 +114,9 @@ def load_dataset(db, dataset, normalize=False):
             print("Successfully inserted %d categories" % (
                 len(response.inserted_ids),))
         except BulkWriteError as bwe:
-            panic = filter(lambda x: x['code'] != DUPLICATE_KEY_ERROR_CODE,
-                           bwe.details['writeErrors'])
+            panic = list(filter(lambda x: x['code'] !=
+                                          DUPLICATE_KEY_ERROR_CODE,
+                                bwe.details['writeErrors']))
             if len(panic) > 0:
                 raise
             print(
@@ -148,8 +149,9 @@ def load_dataset(db, dataset, normalize=False):
                 len(response.inserted_ids),))
 
         except BulkWriteError as bwe:
-            panic = filter(lambda x: x['code'] != DUPLICATE_KEY_ERROR_CODE,
-                           bwe.details['writeErrors'])
+            panic = list(filter(lambda x: x['code'] !=
+                                          DUPLICATE_KEY_ERROR_CODE,
+                                bwe.details['writeErrors']))
             if len(panic) > 0:
                 raise
             print(
@@ -189,8 +191,9 @@ def load_dataset(db, dataset, normalize=False):
             print("Successfully inserted %d annotations" % (
                 len(response.inserted_ids),))
         except BulkWriteError as bwe:
-            panic = filter(lambda x: x['code'] != DUPLICATE_KEY_ERROR_CODE,
-                           bwe.details['writeErrors'])
+            panic = list(filter(lambda x: x['code'] !=
+                                          DUPLICATE_KEY_ERROR_CODE,
+                                bwe.details['writeErrors']))
             if len(panic) > 0:
                 raise
             print(
@@ -212,8 +215,9 @@ def load_dataset(db, dataset, normalize=False):
             print("Successfully inserted %d licenses" % (
                 len(response.inserted_ids),))
         except BulkWriteError as bwe:
-            panic = filter(lambda x: x['code'] != DUPLICATE_KEY_ERROR_CODE,
-                           bwe.details['writeErrors'])
+            panic = list(filter(lambda x: x['code'] !=
+                                          DUPLICATE_KEY_ERROR_CODE,
+                                bwe.details['writeErrors']))
             if len(panic) > 0:
                 raise
             print(

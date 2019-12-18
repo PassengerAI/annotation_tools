@@ -231,7 +231,7 @@ def convert_files(keypoints_path: str, output_file: str):
 
 
 def from_images(images_path: str, output_file: str):
-    id = 1
+    id = 100000
     d: Dict[str, object] = {"images": [],
                             "annotations": []}
 

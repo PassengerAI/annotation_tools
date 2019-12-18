@@ -32,17 +32,36 @@ The tools are primarily tested using the [Chrome web browser](https://www.google
 
 ## Deploy Visipedia on Heroku.
 
-- Give the app a random, hard to guess name so it's not easily discoverable. You
-  can
+We deploy new instances of Visipedia for every new annotation task. For 
+example, in order to split a large number of images, we split them into 
+smaller buckets, and deploy a new app together with a new database for each 
+image bucket. This simplifies the task assignment, and also ensure isolated 
+database instances.
+
+Follow the steps below to deploy a new Visipedia instance on Heroku.
+
+1. In Heroku's `passengerai/data-tools` workspace, create a new app.
+
+    * Since the app and the data are publicly accessible and we don't have 
+    any access control mechanism, we might want to give the app a random and 
+    hard-to-guess url, so it's not discoverable for the public. You  can
   use [this random string generator](https://www.random.org/strings/) to
   generate such names. Make sure to only use lower-case letters and numbers.
-- You need to use mLab MongoDB as its database.
+
+1. After the app is created, click on it and go to `Resources` tab. Look for 
+`mLab MongoDB` in Add-ons search bar and add it.
+
+1. 
 
 ## Load a set of images to the database.
 
 1.  Collect all the images in a local directory. For example, `~/feet_on_seat`.
-1.  Use [`from_image`](https://github.com/PassengerAI/annotation_tools/blob/d404e525a2f6619a4f26f398eede5e38b5fe47e8/annotation_tools/converter.py#L233) to create a JSON file with links to the images:  
-    `from_images('/Users/myuser/feet_on_seet', '/Users/myuser/output.json')`
+    - If you have a list of images  that need to be downloaded from an s3 
+  bucket, first create an empty directory (e.g. `~/feet_on_seat`), cd into 
+  ti and can use the following command to download the files in the local 
+  directory: `cat <LIST_OF_IMAGES> | xargs -I % aws s3 cp s3://<BUCKET_NAME>/% .`
+1.  Use `python images-to-json.py /Users/myuser/feet_on_seet 
+/Users/myuser/output.json` to create a json file which links to the images.
 1.  Cd into the `~/feet_on_seat` and upload the images to the S3 bucket:
     `aws s3 sync . s3://pai-datastore/images/`.
     Make sure all the images are publicly readable.
