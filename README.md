@@ -51,7 +51,15 @@ Follow the steps below to deploy a new Visipedia instance on Heroku.
 1. After the app is created, click on it and go to `Resources` tab. Look for 
 `mLab MongoDB` in Add-ons search bar and add it.
 
-1. 
+1. Deploy the app to heroku:
+    ```
+    git clone git@github.com:PassengerAI/annotation_tools.git
+    cd annotation_tools
+    heroku git:remote -a <NAME OF HEROKU APP IN #1> -r <NAME OF HEROKU APP IN #1>
+    git push <NAME OF HEROKU APP IN #1> master
+    ```
+
+1. Visit https://<NAME OF HEROKU APP #1>.herokuapp.com
 
 ## Load a set of images to the database.
 
