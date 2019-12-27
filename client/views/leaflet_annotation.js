@@ -67,10 +67,6 @@ export class LeafletAnnotation extends React.Component {
     // This will hold the leaflet layers that correspond to the annotations stored in `this.state.annotations`
     // It is a mirror of this.state.annotations
     this.annotation_layers = null;
-    this.annotationFeatures = null;
-
-    this.edges = {};
-    this.edgeFeatures = null;
 
     // Properties used to track annotation status
     this._drawSuccessfullyCreated = null; // used to determine if the user actually made an annotation or simply clicked on the image
@@ -112,8 +108,6 @@ export class LeafletAnnotation extends React.Component {
     this.hideAllAnnotations = this.hideAllAnnotations.bind(this);
     this.showAllAnnotations = this.showAllAnnotations.bind(this);
     this.handleKeyDown = this.handleKeyDown.bind(this);
-
-    this.redrawEdges = this.redrawEdges.bind(this);
 
     this.bboxCursorUpdate = this.bboxCursorUpdate.bind(this);
 
@@ -171,15 +165,9 @@ export class LeafletAnnotation extends React.Component {
       leafletMap
     );
 
-    //Feature group holding all intra-keypoint edge layers
-    this.edgeFeatures = L.featureGroup().addTo(leafletMap);
-
     // Add the feature group that will hold the annotations
-    // and ensure it is the foremost layer visually
     // All layers added to this feature group will be editable
-    this.annotationFeatures = new L.FeatureGroup()
-      .addTo(leafletMap)
-      .bringToFront();
+    this.annotationFeatures = new L.FeatureGroup().addTo(leafletMap);
 
     // Initialize the editor
     this.editor = new L.EditToolbar.Edit(leafletMap, {
@@ -202,9 +190,6 @@ export class LeafletAnnotation extends React.Component {
         this.addAnnotation(this.state.annotations[i], i)
       );
     }
-
-    // Draw initial skeleton edger based on existing annotations
-    this.redrawEdges();
 
     // Should we enable editing immediately?
     if (this.props.enableEditing) {
@@ -412,65 +397,6 @@ export class LeafletAnnotation extends React.Component {
   }
 
   /**
-   * Redraw the skeleton by deleting all existing edges/layers and then
-   * redrawing all the edges that still exist, with updated positions
-   */
-  redrawEdges() {
-    this.edgeFeatures.clearLayers();
-    let annotations = this.getAnnotations().filter(anno => !anno.deleted);
-    for (let i = 0; i < annotations.length; i++) {
-      let annotation = annotations[i];
-      let category = this.categoryMap[annotation.category_id];
-      for (let j = 0; j < category.skeleton.length; j++) {
-        let edge = category.skeleton[j];
-        let p1_index = edge[0] * 3;
-        let p2_index = edge[1] * 3;
-
-        let v1 = annotation.keypoints[p1_index + 2];
-        let v2 = annotation.keypoints[p2_index + 2];
-
-        if (v1 > 0 && v2 > 0) {
-          //We want 2 edges here, colored for each endpoint, meeting at the midpoint
-          let x1_px = annotation.keypoints[p1_index] * this.imageWidth;
-          let y1_px = annotation.keypoints[p1_index + 1] * this.imageHeight;
-
-          let x2_px = annotation.keypoints[p2_index] * this.imageWidth;
-          let y2_px = annotation.keypoints[p2_index + 1] * this.imageHeight;
-
-          let x_mid_px = (x1_px + x2_px) / 2.0;
-          let y_mid_px = (y1_px + y2_px) / 2.0;
-
-          let latlngs1 = [
-            this.leafletMap.unproject([x1_px, y1_px], 0),
-            this.leafletMap.unproject([x_mid_px, y_mid_px], 0)
-          ];
-
-          let edge1 = L.polyline(latlngs1, {
-            color: category.keypoints_style[edge[0]]
-          });
-
-          edge1.options.editing = {};
-          edge1.editing.disable();
-          this.edgeFeatures.addLayer(edge1);
-
-          let latlngs2 = [
-            this.leafletMap.unproject([x2_px, y2_px], 0),
-            this.leafletMap.unproject([x_mid_px, y_mid_px], 0)
-          ];
-
-          let edge2 = L.polyline(latlngs2, {
-            color: category.keypoints_style[edge[1]]
-          });
-
-          edge2.options.editing = {};
-          edge2.editing.disable();
-          this.edgeFeatures.addLayer(edge2);
-        }
-      }
-    }
-  }
-
-  /**
    * Allow the user to draw a bbox.
    */
   annotateBBox() {
@@ -549,7 +475,7 @@ export class LeafletAnnotation extends React.Component {
   }
 
   _drawStartEvent(e) {
-    console.log("draw start", e);
+    console.log("draw start");
 
     if (this.annotating_bbox) {
       // If the user clicks on the image (rather than clicking and dragging) then this
@@ -581,7 +507,7 @@ export class LeafletAnnotation extends React.Component {
    * @param {*} e
    */
   _drawStopEvent(e) {
-    console.log("draw stop", e);
+    console.log("draw stop");
     // The user triggered some click, but didn't successfully create the annotation.
     if (this.state.annotating && !this._drawSuccessfullyCreated) {
       this._currentDrawer.enable();
@@ -595,7 +521,6 @@ export class LeafletAnnotation extends React.Component {
         $(ch_vertical).remove();
         this.bbox_crosshairs = null;
       }
-      this.redrawEdges();
     }
   }
 
@@ -604,7 +529,7 @@ export class LeafletAnnotation extends React.Component {
    * @param {*} e
    */
   _drawCreatedEvent(e) {
-    console.log("draw created", e);
+    console.log("draw created");
     // This is confusing, but we need to use another state variable
     // to decide if the user "messed up" the annotation:
     //		doing a single click for a bounding box, etc.
@@ -720,8 +645,6 @@ export class LeafletAnnotation extends React.Component {
       this.checkKeypointAnnotationQueue.bind(this)
     );
 
-    this.redrawEdges();
-
     // If this is the first instance, then we need to enable editing.
     if (this.props.enableEditing) {
       this.enableEditing();
@@ -744,7 +667,6 @@ export class LeafletAnnotation extends React.Component {
   }
 
   _layerMoved(e) {
-    this.redrawEdges();
     console.log(e);
   }
 
@@ -1115,8 +1037,6 @@ export class LeafletAnnotation extends React.Component {
       // Mark the annotation as deleted. The server will delete it from the database
       annotations[annotation_id].deleted = true;
 
-      this.redrawEdges();
-
       return {
         annotations: annotations
       };
@@ -1297,7 +1217,6 @@ export class LeafletAnnotation extends React.Component {
   handleSave() {
     //this.props.onSave(annotations_to_save);
     this.props.onSave(() => {}, () => {});
-    this.redrawEdges();
   }
 
   /**
