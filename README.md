@@ -66,7 +66,7 @@ Follow the steps below to deploy a new Visipedia instance on Heroku.
 1.  Collect all the images in a local directory. For example, `~/feet_on_seat`.
     - If you have a list of images  that need to be downloaded from an s3 
   bucket, first create an empty directory (e.g. `~/feet_on_seat`), cd into 
-  ti and can use the following command to download the files in the local 
+  it and use the following command to download the files in the local 
   directory: `cat <LIST_OF_IMAGES> | xargs -I % aws s3 cp s3://<BUCKET_NAME>/% .`
 1.  Use `python images-to-json.py /Users/myuser/feet_on_seet 
 /Users/myuser/output.json` to create a json file which links to the images.
